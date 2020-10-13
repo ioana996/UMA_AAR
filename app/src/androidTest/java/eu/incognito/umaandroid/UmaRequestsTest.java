@@ -1,20 +1,15 @@
 package eu.incognito.umaandroid;
 
 import android.content.Context;
-
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.platform.app.InstrumentationRegistry;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.junit.experimental.categories.Categories;
 import org.junit.runner.RunWith;
-
 import java.io.IOException;
 import java.io.InputStream;
-
 import eu.incognito.umaandroid.op.UmaRequests;
 import eu.incognito.umaandroid.util.JsonFileReader;
 import okhttp3.HttpUrl;
@@ -22,12 +17,9 @@ import okhttp3.mockwebserver.Dispatcher;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
-
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
 @RunWith(AndroidJUnit4.class)
-@Ignore
 public class UmaRequestsTest {
     public MockWebServer server = new MockWebServer();
     public MockResponse mockResponse;
@@ -42,17 +34,6 @@ public class UmaRequestsTest {
         context = InstrumentationRegistry.getInstrumentation().getTargetContext();
         umaAndroidLibrary = UmaAndroidLibrary.init(context);
         umaRequests = new UmaRequests(context);
-    }
-
-    public void createServerResponse() throws IOException {
-        is = context.getResources().getAssets().open("DiscoveryDocument.json");
-        jsonString = JsonFileReader.fileToString(is);
-
-        mockResponse = new MockResponse().addHeader("Content-Type", "application/json; charset=utf-8")
-                                    .setBody(jsonString);
-        server.enqueue(mockResponse);
-        server.enqueue(new MockResponse().setResponseCode(201)
-                .setHeader("Warning", "199 - \"UMA Authorization Server Unreachable\""));
     }
 
     private final Dispatcher dispatcher = new Dispatcher() {
@@ -111,43 +92,35 @@ public class UmaRequestsTest {
     public void startServer() {
         try {
            initTest();
-           //createServerResponse();
            server.setDispatcher(dispatcher);
            server.start();
-           //HttpUrl baseUrl = server.url("http://localhost:8180");
     } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     @Test
-    //@Ignore
     public void testGetDiscoveryDocument() throws InterruptedException, IOException {
 
         baseUrl = server.url("/discoveryDocument");
         umaRequests.getDiscoveryDocument(baseUrl.toString());
 
         Thread.sleep(2000);
-        //await().atMost(5, SECONDS).until();
         RecordedRequest request = server.takeRequest();
         assertEquals("GET /discoveryDocument HTTP/1.1", request.getRequestLine());
         assertEquals("http://097509e86123.ngrok.io/auth/realms/springboot-uma/protocol/openid-connect/auth",
                 UmaAndroidLibrary.discoveryDocument.getAuthorizationEndpoint());
         assertEquals("http://097509e86123.ngrok.io/auth/realms/springboot-uma/authz/protection/resource_set",
                 umaAndroidLibrary.discoveryDocument.getResourceRegistrationEndpoint());
-        //assertEquals(9, umaAndroidLibrary.httpRequestHandler.responseCode);
-        //assertEquals("header", umaAndroidLibrary.httpRequestHandler.header);
     }
 
     @Test
-    @Ignore
     public void testGetPermissionTicketOnError() throws InterruptedException {
         baseUrl = server.url("/permissionTicketOnError");
         umaRequests.getPermissionTicket(baseUrl.toString());
         Thread.sleep(2000);
         RecordedRequest request = server.takeRequest();
         assertEquals("GET /permissionTicketOnError HTTP/1.1", request.getRequestLine());
-        //assertEquals("199 - 'UMA Authorization Server Unreachable'", umaAndroidLibrary.permissionTicket);
         assertEquals(203, umaAndroidLibrary.httpRequestHandler.responseCode);
         assertEquals("199 - \"UMA Authorization Server Unreachable\"",
                 umaAndroidLibrary.httpRequestHandler.header.get("Warning"));
@@ -155,7 +128,6 @@ public class UmaRequestsTest {
     }
 
     @Test
-    @Ignore
     public void testGetPermissionTicketOnSuccess() throws InterruptedException {
         baseUrl = server.url("/permissionTicketOnSuccess");
         umaRequests.getPermissionTicket(baseUrl.toString());
@@ -170,7 +142,6 @@ public class UmaRequestsTest {
     }
 
     @Test
-    @Ignore
     public void testGetResource() throws InterruptedException {
         baseUrl = server.url("/resource");
         String access_token = "access_token";
@@ -182,7 +153,6 @@ public class UmaRequestsTest {
     }
 
     @Test
-    @Ignore
     public void testGetAccessToken() throws InterruptedException {
         baseUrl = server.url("/rptAccessToken");
         String access_token = "Access Token";
